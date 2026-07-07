@@ -1,0 +1,77 @@
+using UnityEngine;
+
+[RequireComponent(typeof(CubeCollisionHandler), typeof(CubeColorChanger), typeof(CubeDestroyer))]
+public class Cube : PoolObject
+{
+    private Rigidbody _rigidbody;
+
+    private CubeCollisionHandler _collisionHandler;
+    private CubeColorChanger _colorChanger;
+    private CubeDestroyer _destroyer;
+
+    private bool _isPlatformCollided = false;
+
+    private void Awake()
+    {
+        _destroyer = GetComponent<CubeDestroyer>();
+        _rigidbody = GetComponent<Rigidbody>();
+        _collisionHandler = GetComponent<CubeCollisionHandler>();
+        _colorChanger = GetComponent<CubeColorChanger>();
+    }
+
+    private void OnEnable()
+    {
+        _collisionHandler.CollidedPlatform += OnCollidedPlatform;
+    }
+
+    private void OnDisable()
+    {
+        _collisionHandler.CollidedPlatform -= OnCollidedPlatform;
+    }
+
+    public override void Init()
+    {
+        ResetPlatformCollided();
+
+        _rigidbody.velocity = Vector3.zero;
+        _rigidbody.angularVelocity = Vector3.zero;
+
+        SetColor(Color.white);
+    }
+    
+    public CubeDestroyer GetDestroyer()
+    {
+        return _destroyer;
+    }
+
+    private void SetColor(Color color)
+    {
+        _colorChanger.SetColor(color);
+    }
+
+    public void SetPosition(Vector3 position)
+    {
+        transform.position = position;
+    }
+
+    public void SetRotationToZero()
+    {
+        transform.rotation = Quaternion.identity;
+    }
+
+    private void ResetPlatformCollided()
+    {
+        _isPlatformCollided = false;
+    }
+
+    private void OnCollidedPlatform()
+    {
+        if (_isPlatformCollided == false)
+        {
+            _colorChanger.ChangeColor();
+            _destroyer.StartDestroying(this);
+        }
+
+        _isPlatformCollided = true;
+    }
+}
